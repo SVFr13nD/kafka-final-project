@@ -1,0 +1,7 @@
+.runtime/
+.env
+evidence/*
+!evidence/README.md
+**/__pycache__/
+.venv/
+**/target/

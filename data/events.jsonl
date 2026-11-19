@@ -1,0 +1,5 @@
+{"user_id": "alice", "event_type": "view", "product_id": "p001"}
+{"user_id": "alice", "event_type": "cart", "product_id": "p001"}
+{"user_id": "alice", "event_type": "purchase", "product_id": "p002"}
+{"user_id": "bob", "event_type": "view", "product_id": "p003"}
+{"user_id": "bob", "event_type": "purchase", "product_id": "p004"}

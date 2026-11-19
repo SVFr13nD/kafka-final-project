@@ -1,0 +1,644 @@
+name: marketplace
+services:
+  tools:
+    build:
+      context: .
+      dockerfile: infra/tools.Dockerfile
+    volumes:
+    - .:/work
+    profiles:
+    - tools
+  primary-1:
+    build:
+      context: .
+      dockerfile: infra/kafka.Dockerfile
+    image: marketplace-kafka:local
+    hostname: primary-1
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: SSL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: SSL://primary-1:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SSL:SSL,CONTROLLER:SSL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@primary-1:9093,2@primary-2:9093,3@primary-3:9093
+      KAFKA_SSL_KEYSTORE_LOCATION: /certs/primary-1.p12
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_SSL_KEY_PASSWORD: changeit
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /certs/truststore.p12
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: https
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: RULE:^CN=(.*)$/$1/,DEFAULT
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'false'
+      KAFKA_SUPER_USERS: User:admin;User:primary-1;User:primary-2;User:primary-3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 104857600
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx384m
+      KAFKA_OPTS: -javaagent:/opt/kafka/jmx-exporter.jar=7071:/etc/jmx.yml
+    volumes:
+    - ./.runtime/roles/primary-1:/certs:ro
+    - primary-1:/var/lib/kafka/data
+    - ./infra/monitoring/jmx.yml:/etc/jmx.yml:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server primary-1:9092
+        --command-config /certs/client.properties >/dev/null 2>&1
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 30s
+  primary-2:
+    build:
+      context: .
+      dockerfile: infra/kafka.Dockerfile
+    image: marketplace-kafka:local
+    hostname: primary-2
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: SSL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: SSL://primary-2:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SSL:SSL,CONTROLLER:SSL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@primary-1:9093,2@primary-2:9093,3@primary-3:9093
+      KAFKA_SSL_KEYSTORE_LOCATION: /certs/primary-2.p12
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_SSL_KEY_PASSWORD: changeit
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /certs/truststore.p12
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: https
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: RULE:^CN=(.*)$/$1/,DEFAULT
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'false'
+      KAFKA_SUPER_USERS: User:admin;User:primary-1;User:primary-2;User:primary-3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 104857600
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx384m
+      KAFKA_OPTS: -javaagent:/opt/kafka/jmx-exporter.jar=7071:/etc/jmx.yml
+    volumes:
+    - ./.runtime/roles/primary-2:/certs:ro
+    - primary-2:/var/lib/kafka/data
+    - ./infra/monitoring/jmx.yml:/etc/jmx.yml:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server primary-2:9092
+        --command-config /certs/client.properties >/dev/null 2>&1
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 30s
+  primary-3:
+    build:
+      context: .
+      dockerfile: infra/kafka.Dockerfile
+    image: marketplace-kafka:local
+    hostname: primary-3
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: SSL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: SSL://primary-3:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SSL:SSL,CONTROLLER:SSL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@primary-1:9093,2@primary-2:9093,3@primary-3:9093
+      KAFKA_SSL_KEYSTORE_LOCATION: /certs/primary-3.p12
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_SSL_KEY_PASSWORD: changeit
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /certs/truststore.p12
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: https
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: RULE:^CN=(.*)$/$1/,DEFAULT
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'false'
+      KAFKA_SUPER_USERS: User:admin;User:primary-1;User:primary-2;User:primary-3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 104857600
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx384m
+      KAFKA_OPTS: -javaagent:/opt/kafka/jmx-exporter.jar=7071:/etc/jmx.yml
+    volumes:
+    - ./.runtime/roles/primary-3:/certs:ro
+    - primary-3:/var/lib/kafka/data
+    - ./infra/monitoring/jmx.yml:/etc/jmx.yml:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server primary-3:9092
+        --command-config /certs/client.properties >/dev/null 2>&1
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 30s
+  secondary-1:
+    build:
+      context: .
+      dockerfile: infra/kafka.Dockerfile
+    image: marketplace-kafka:local
+    hostname: secondary-1
+    environment:
+      CLUSTER_ID: N1U3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: SSL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: SSL://secondary-1:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SSL:SSL,CONTROLLER:SSL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@secondary-1:9093,2@secondary-2:9093,3@secondary-3:9093
+      KAFKA_SSL_KEYSTORE_LOCATION: /certs/secondary-1.p12
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_SSL_KEY_PASSWORD: changeit
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /certs/truststore.p12
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: https
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: RULE:^CN=(.*)$/$1/,DEFAULT
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'false'
+      KAFKA_SUPER_USERS: User:admin;User:secondary-1;User:secondary-2;User:secondary-3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 104857600
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx384m
+      KAFKA_OPTS: -javaagent:/opt/kafka/jmx-exporter.jar=7071:/etc/jmx.yml
+    volumes:
+    - ./.runtime/roles/secondary-1:/certs:ro
+    - secondary-1:/var/lib/kafka/data
+    - ./infra/monitoring/jmx.yml:/etc/jmx.yml:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server secondary-1:9092
+        --command-config /certs/client.properties >/dev/null 2>&1
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 30s
+  secondary-2:
+    build:
+      context: .
+      dockerfile: infra/kafka.Dockerfile
+    image: marketplace-kafka:local
+    hostname: secondary-2
+    environment:
+      CLUSTER_ID: N1U3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: SSL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: SSL://secondary-2:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SSL:SSL,CONTROLLER:SSL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@secondary-1:9093,2@secondary-2:9093,3@secondary-3:9093
+      KAFKA_SSL_KEYSTORE_LOCATION: /certs/secondary-2.p12
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_SSL_KEY_PASSWORD: changeit
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /certs/truststore.p12
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: https
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: RULE:^CN=(.*)$/$1/,DEFAULT
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'false'
+      KAFKA_SUPER_USERS: User:admin;User:secondary-1;User:secondary-2;User:secondary-3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 104857600
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx384m
+      KAFKA_OPTS: -javaagent:/opt/kafka/jmx-exporter.jar=7071:/etc/jmx.yml
+    volumes:
+    - ./.runtime/roles/secondary-2:/certs:ro
+    - secondary-2:/var/lib/kafka/data
+    - ./infra/monitoring/jmx.yml:/etc/jmx.yml:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server secondary-2:9092
+        --command-config /certs/client.properties >/dev/null 2>&1
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 30s
+  secondary-3:
+    build:
+      context: .
+      dockerfile: infra/kafka.Dockerfile
+    image: marketplace-kafka:local
+    hostname: secondary-3
+    environment:
+      CLUSTER_ID: N1U3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: SSL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: SSL://secondary-3:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SSL:SSL,CONTROLLER:SSL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@secondary-1:9093,2@secondary-2:9093,3@secondary-3:9093
+      KAFKA_SSL_KEYSTORE_LOCATION: /certs/secondary-3.p12
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_SSL_KEY_PASSWORD: changeit
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /certs/truststore.p12
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: https
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: RULE:^CN=(.*)$/$1/,DEFAULT
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: 'false'
+      KAFKA_SUPER_USERS: User:admin;User:secondary-1;User:secondary-2;User:secondary-3
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE: 'false'
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 104857600
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx384m
+      KAFKA_OPTS: -javaagent:/opt/kafka/jmx-exporter.jar=7071:/etc/jmx.yml
+    volumes:
+    - ./.runtime/roles/secondary-3:/certs:ro
+    - secondary-3:/var/lib/kafka/data
+    - ./infra/monitoring/jmx.yml:/etc/jmx.yml:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server secondary-3:9092
+        --command-config /certs/client.properties >/dev/null 2>&1
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 30s
+  bootstrap:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.bootstrap
+    volumes:
+    - ./.runtime/roles/admin:/certs:ro
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+    profiles:
+    - tools
+  shop:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.cli
+    - shop
+    volumes:
+    - ./.runtime/roles/shop:/certs:ro
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+    profiles:
+    - tools
+  moderator:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.cli
+    volumes:
+    - ./.runtime/roles/moderator:/certs:ro
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+    profiles:
+    - tools
+  client:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.cli
+    volumes:
+    - ./.runtime/roles/client:/certs:ro
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+    profiles:
+    - tools
+  outbox:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.outbox
+    volumes:
+    - ./.runtime/roles/client:/certs:ro
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+  catalog:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.db_sink
+    - products
+    volumes:
+    - ./.runtime/roles/catalog:/certs:ro
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+  rec-reader:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.db_sink
+    - recommendations
+    volumes:
+    - ./.runtime/roles/rec-reader:/certs:ro
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+  lake:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.hdfs_sink
+    volumes:
+    - ./.runtime/roles/lake:/certs:ro
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+  verify:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.verify
+    volumes:
+    - ./.runtime/roles/admin:/certs:ro
+    - ./evidence:/evidence
+    - debug:/debug:ro
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+    profiles:
+    - tools
+  filter:
+    build:
+      context: filter
+    volumes:
+    - ./.runtime/roles/filter:/certs:ro
+    - filter-state:/state
+    restart: unless-stopped
+    ports:
+    - 127.0.0.1:8090:8090
+  mirror:
+    image: apache/kafka:3.9.1
+    entrypoint:
+    - /opt/kafka/bin/connect-mirror-maker.sh
+    command:
+    - /config/mirror.properties
+    environment:
+      KAFKA_HEAP_OPTS: -Xms128m -Xmx384m
+    volumes:
+    - ./.runtime/roles/mirror:/certs:ro
+    - ./.runtime/mirror.properties:/config/mirror.properties:ro
+    restart: unless-stopped
+  connect:
+    image: apache/kafka:3.9.1
+    entrypoint:
+    - /opt/kafka/bin/connect-distributed.sh
+    command:
+    - /config/connect.properties
+    environment:
+      KAFKA_HEAP_OPTS: -Xms128m -Xmx256m
+    volumes:
+    - ./.runtime/roles/connect:/certs:ro
+    - ./.runtime/connect.properties:/config/connect.properties:ro
+    - debug:/debug
+    ports:
+    - 127.0.0.1:8083:8083
+    user: 0:0
+    restart: unless-stopped
+  postgres:
+    image: postgres:16.8-bookworm
+    environment:
+      POSTGRES_USER: marketplace
+      POSTGRES_PASSWORD: marketplace
+      POSTGRES_DB: marketplace
+    volumes:
+    - postgres:/var/lib/postgresql/data
+    - ./db/init.sql:/docker-entrypoint-initdb.d/01.sql:ro
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U marketplace
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  namenode:
+    image: apache/hadoop:3.4.1
+    hostname: namenode
+    user: root
+    entrypoint:
+    - /bin/bash
+    - -ec
+    command:
+    - if [ ! -f /data/name/current/VERSION ]; then hdfs namenode -format -nonInteractive;
+      fi; exec hdfs namenode
+    environment:
+      HADOOP_CONF_DIR: /config
+      HADOOP_HEAPSIZE_MAX: '256'
+    volumes:
+    - ./infra/hadoop:/config:ro
+    - namenode:/data
+    restart: unless-stopped
+    ports:
+    - 127.0.0.1:9870:9870
+  datanode:
+    image: apache/hadoop:3.4.1
+    hostname: datanode
+    user: root
+    entrypoint:
+    - /bin/bash
+    - -ec
+    command:
+    - exec hdfs datanode
+    environment:
+      HADOOP_CONF_DIR: /config
+      HADOOP_HEAPSIZE_MAX: '256'
+    volumes:
+    - ./infra/hadoop:/config:ro
+    - datanode:/data
+    restart: unless-stopped
+  analytics:
+    build:
+      context: .
+      dockerfile: analytics/Dockerfile
+    command:
+    - python
+    - -m
+    - analytics.job
+    volumes:
+    - ./.runtime/roles/analytics:/certs:ro
+    profiles:
+    - tools
+    environment:
+      SPARK_LOCAL_IP: analytics
+      PYTHONUNBUFFERED: '1'
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    volumes:
+    - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - ./infra/monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+    - prometheus:/prometheus
+    ports:
+    - 127.0.0.1:9090:9090
+    restart: unless-stopped
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    command:
+    - --config.file=/etc/alertmanager/alertmanager.yml
+    - --storage.path=/alertmanager
+    - --data.retention=24h
+    volumes:
+    - ./infra/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+    - 127.0.0.1:9093:9093
+    restart: unless-stopped
+  alert-receiver:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+    image: marketplace-python:local
+    command:
+    - services.alert_receiver
+    volumes:
+    - ./evidence:/evidence
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://marketplace:marketplace@postgres:5432/marketplace
+      PYTHONUNBUFFERED: '1'
+    ports:
+    - 127.0.0.1:8080:8080
+  grafana:
+    image: grafana/grafana:11.6.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: marketplace-demo
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+    - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+    - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    - grafana:/var/lib/grafana
+    ports:
+    - 127.0.0.1:3000:3000
+    restart: unless-stopped
+volumes:
+  primary-1: {}
+  primary-2: {}
+  primary-3: {}
+  secondary-1: {}
+  secondary-2: {}
+  secondary-3: {}
+  filter-state: {}
+  debug: {}
+  postgres: {}
+  namenode: {}
+  datanode: {}
+  prometheus: {}
+  grafana: {}
