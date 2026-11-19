@@ -1,0 +1,15 @@
+groups:
+  - name: kafka
+    rules:
+      - alert: KafkaBrokerDown
+        expr: up{job="kafka"} == 0
+        for: 15s
+        labels: {severity: critical}
+        annotations:
+          summary: 'Kafka broker {{ $labels.instance }} is unavailable'
+      - alert: KafkaUnderReplicatedPartitions
+        expr: kafka_server_replicamanager_underreplicatedpartitions > 0
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: 'Under-replicated partitions on {{ $labels.instance }}'
